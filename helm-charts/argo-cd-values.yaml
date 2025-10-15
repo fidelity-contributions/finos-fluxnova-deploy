@@ -1,0 +1,26 @@
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+applicationSet:
+  enabled: false
+
+server:
+  extraArgs:
+    - --insecure
+
+configs:
+  credentialTemplates:
+    github-creds:
+      url: https://github.com/finos/fluxnova-deploy.git
+      username: "finos-admin"
+      password: "not_set"
+  repositories:
+    fluxnova-deploy-repo:
+      project: default
+      name: "Fluxnova Deploy Repo"
+      type: git
+      method: https
+      url: https://github.com/finos/fluxnova-deploy.git

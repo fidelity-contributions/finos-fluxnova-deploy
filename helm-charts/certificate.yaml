@@ -1,0 +1,14 @@
+# certificate.yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fluxnova-tls
+  namespace: fluxnova-ns
+spec:
+  secretName: fluxnova-tls
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  commonName: demo.fluxnova.finos.org
+  dnsNames:
+    - demo.fluxnova.finos.org
