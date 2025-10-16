@@ -79,7 +79,12 @@ kubectl apply -f helm-charts/ingress-tls.yaml -n fluxnova-ns
 helm repo add keel https://charts.keel.sh
 helm repo update
 helm upgrade --install keel --namespace=kube-system keel/keel
-kubectl annotate pod -l app=fluxnova keel.sh/policy=force keel.sh/trigger=poll keel.sh/pollSchedule="@every 10m" -n fluxnova-ns
+kubectl annotate deployment -l app=fluxnova \
+  keel.sh/policy=force \
+  keel.sh/trigger=poll \
+  keel.sh/pollSchedule="@every 10m" \
+  -n fluxnova-ns --overwrite
+
 
 # Make sure keel is ready
 kubectl --namespace=kube-system get pods -l "app=keel"
