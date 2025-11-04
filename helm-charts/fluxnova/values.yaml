@@ -1,11 +1,11 @@
 replicaCount: 1
 env:
   FLUXNOVA_HOST: "fluxnova.example.com"
-  HTTP_MODE: "http" # https or http
-  TLS_SECRET: ""
+  FLUXNOVA_BPM_TEST_USER_SETUP_ENABLED: "true"
+
 image:
-  name: ghcr.io/finos/fluxnova-bpm-platform
-  tag: 0.0.1-SNAPSHOT
+  name: ghcr.io/finos/flowave-examples
+  tag: 1.0.0-snapshot
   pullPolicy: Always
 
 imagePullSecrets:
