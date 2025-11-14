@@ -2,9 +2,10 @@ replicaCount: 1
 env:
   FLUXNOVA_HOST: "fluxnova.example.com"
   FLUXNOVA_BPM_TEST_USER_SETUP_ENABLED: "true"
+  FLUXNOVA_BPM_AUTHORIZATION_ENABLED: "true"
 
 image:
-  name: ghcr.io/finos/flowave-examples
+  name: ghcr.io/finos/fluxnova-examples
   tag: 1.0.0-snapshot
   pullPolicy: Always
 
