@@ -37,9 +37,23 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          {{- /* Load DB env vars from one Secret (DB_URL, DB_USERNAME, DB_PASSWORD). */}}
+          {{- if and .Values.database.enabled .Values.database.envFromSecretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.database.envFromSecretName | quote }}
+          {{- end }}
+
           env:
-            {{- with .Values.env }}
-            {{- toYaml . | nindent 12 }}
+            {{- range $name, $value := .Values.env }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+
+            {{- if and .Values.database.enabled .Values.database.driver }}
+            - name: DB_DRIVER
+              value: {{ .Values.database.driver | quote }}
             {{- end }}
           ports:
             - name: http
