@@ -37,7 +37,29 @@ kubectl create secret docker-registry ghcr-secret \
      --docker-email=<github email address>
 ```
 
-5. Install Nginx Ingress
+5. Create DB credentials secret (PostgreSQL)
+
+Fluxnova's container entry script supports `DB_*` environment variables and maps them to Spring Boot datasource settings.
+Create a single Kubernetes Secret that contains all DB credential values.
+
+Replace the placeholders below with your Postgres connection details:
+
+```
+kubectl create secret generic fluxnova-db \
+  --from-literal=DB_URL='jdbc:postgresql://<db-host>:5432/<db-name>' \
+  --from-literal=DB_USERNAME='<db-username>' \
+  --from-literal=DB_PASSWORD='<db-password>' \
+  -n fluxnova-ns
+```
+
+To verify the secret exists:
+
+```
+kubectl describe secret fluxnova-db -n fluxnova-ns
+kubectl get secret fluxnova-db -n fluxnova-ns -o jsonpath='{.data}'
+```
+
+6. Install Nginx Ingress
 ```
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
@@ -47,7 +69,7 @@ helm install nginx-ingress ingress-nginx/ingress-nginx \
   --set controller.publishService.enabled=true
 ```
 
-6. Install cert-manager
+7. Install cert-manager
 ```
 kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 
@@ -55,14 +77,14 @@ kubectl get pods -n cert-manager
 ```
 Wait for the webhook pod to be Ready (`1/1`).
 
-7. Install fluxnova helm chart
+8. Install fluxnova helm chart
 ```
 cd helm-charts
 helm install fluxnova --namespace fluxnova-ns --create-namespace ./fluxnova
 cd -
 ```
 
-8. Configure with cloudflare
+9. Configure with cloudflare
 ```
 kubectl create secret generic cloudflare-api-token-secret \
   --from-literal=api-token=<Cloudflare API token> \
@@ -73,7 +95,7 @@ kubectl apply -f helm-charts/certificate.yaml -n fluxnova-ns
 kubectl apply -f helm-charts/ingress-tls.yaml -n fluxnova-ns
 ```
 
-9. Configure keel (auto-deploy new docker images)
+10. Configure keel (auto-deploy new docker images)
 
 ```
 helm repo add keel https://charts.keel.sh
@@ -90,7 +112,7 @@ kubectl annotate deployment -l app=fluxnova \
 kubectl --namespace=kube-system get pods -l "app=keel"
 ```
 
-10. Setup ingress basic auth
+11. Setup ingress basic auth
 ```
 htpasswd -c auth us3r
 kubectl create secret generic basic-auth  --from-file=auth
