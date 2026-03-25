@@ -15,12 +15,10 @@ database:
   driver: "org.postgresql.Driver"
 
 image:
-  name: ghcr.io/finos/fluxnova-examples
-  tag: 1.0.0
+  name: finos/fluxnova-bpm-platform
+  tag: latest
   pullPolicy: Always
 
-imagePullSecrets:
-  - name: ghcr-secret
 nameOverride: ""
 fullnameOverride: ""
 
