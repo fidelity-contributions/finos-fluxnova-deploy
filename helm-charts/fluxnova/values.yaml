@@ -15,9 +15,12 @@ database:
   driver: "org.postgresql.Driver"
 
 image:
-  name: finos/fluxnova-bpm-platform
+  name: finos/fluxnova-springboot-demo
   tag: latest
   pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-secret
 
 nameOverride: ""
 fullnameOverride: ""
@@ -27,10 +30,7 @@ serviceAccount:
   annotations: {}
   name: ""
 
-podAnnotations:
-  "keel.sh/policy": "force"
-  "keel.sh/trigger": "poll"
-  "keel.sh/pollSchedule": "@every 10m"
+podAnnotations: {}
 
 podSecurityContext: {}
 
