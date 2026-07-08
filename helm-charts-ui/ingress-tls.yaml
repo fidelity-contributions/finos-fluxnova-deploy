@@ -1,0 +1,35 @@
+# ingress-tls.yaml – TLS-enabled Ingress for the FluxNova Control Center UI
+#
+# This Ingress routes traffic for demo.fluxnova.finos.org:
+#   /           -> fluxnova-ui service (port 4000)
+#
+# NOTE: The engine Ingress (helm-charts-engine/ingress-tls.yaml) should be updated
+# to restrict its path to /monitoring so both can coexist on the same domain.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fluxnova-ui-tls
+  namespace: fluxnova-ns
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-cloudflare"
+    # Rewrite engine calls: the engine is served at /monitoring via its own Ingress.
+    # If you prefer a single combined Ingress, merge both path blocks here.
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - demo.fluxnova.finos.org
+      secretName: fluxnova-tls   # shared with engine – cert-manager will reuse the existing secret
+  rules:
+    - host: demo.fluxnova.finos.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-ui
+                port:
+                  number: 4000
+

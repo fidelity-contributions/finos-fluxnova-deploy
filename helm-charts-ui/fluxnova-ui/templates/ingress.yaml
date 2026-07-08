@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "fluxnova-ui.fullname" . }}
+  labels:
+    {{- include "fluxnova-ui.labels" . | nindent 4 }}
+spec:
+  rules:
+    - host: "{{ .Values.env.FLUXNOVA_UI_HOST }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "fluxnova-ui.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+

@@ -79,7 +79,7 @@ Wait for the webhook pod to be Ready (`1/1`).
 
 8. Install fluxnova helm chart
 ```
-cd helm-charts
+cd helm-charts-engine
 helm install fluxnova --namespace fluxnova-ns --create-namespace ./fluxnova
 cd -
 ```
@@ -90,9 +90,9 @@ kubectl create secret generic cloudflare-api-token-secret \
   --from-literal=api-token=<Cloudflare API token> \
   -n cert-manager
 
-kubectl apply -f helm-charts/cluster-issuer.yaml
-kubectl apply -f helm-charts/certificate.yaml -n fluxnova-ns
-kubectl apply -f helm-charts/ingress-tls.yaml -n fluxnova-ns
+kubectl apply -f helm-charts-engine/cluster-issuer.yaml
+kubectl apply -f helm-charts-engine/certificate.yaml -n fluxnova-ns
+kubectl apply -f helm-charts-engine/ingress-tls.yaml -n fluxnova-ns
 ```
 
 11. Setup ingress basic auth
@@ -116,9 +116,9 @@ kubectl get challenges -A
 
 To reset cert manager setup:
 ```
-kubectl delete -f helm-charts/cluster-issuer.yaml
-kubectl delete -f helm-charts/certificate.yaml
-kubectl delete -f helm-charts/ingress-tls.yaml
+kubectl delete -f helm-charts-engine/cluster-issuer.yaml
+kubectl delete -f helm-charts-engine/certificate.yaml
+kubectl delete -f helm-charts-engine/ingress-tls.yaml
 kubectl delete certificate fluxnova-tls -n fluxnova-ns
 kubectl delete certificaterequest fluxnova-tls -n fluxnova-ns
 kubectl delete order fluxnova-tls-1-2206662564 -n fluxnova-ns

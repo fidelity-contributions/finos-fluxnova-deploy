@@ -1,8 +1,6 @@
 replicaCount: 1
 env:
   FLUXNOVA_HOST: "fluxnova.example.com"
-  FLUXNOVA_BPM_TEST_USER_SETUP_ENABLED: "true"
-  FLUXNOVA_BPM_AUTHORIZATION_ENABLED: "true"
 
 # Database configuration.
 database:

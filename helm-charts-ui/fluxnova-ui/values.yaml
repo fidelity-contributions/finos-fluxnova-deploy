@@ -1,0 +1,49 @@
+replicaCount: 1
+
+env:
+  # Hostname for the UI ingress rule
+  FLUXNOVA_UI_HOST: "demo.fluxnova.finos.org"
+  # URL of the FluxNova engine REST API consumed by the UI
+  FXN_REST_API_URL: "https://demo.fluxnova.finos.org/monitoring"
+
+image:
+  # Docker Hub image for the FluxNova Control Center UI
+  name: finos/fluxnova-control-center
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  # UI container port
+  port: 4000
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+

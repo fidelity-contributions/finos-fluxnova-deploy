@@ -90,7 +90,7 @@ jobs:
           echo "Cluster:         fluxnova-sandbox-cluster (us-east-1)"
 
           helm upgrade fluxnova \
-            ./helm-charts/fluxnova \
+            ./helm-charts-engine/fluxnova \
             --namespace fluxnova-ns \
             --install \
             --atomic \
