@@ -3,8 +3,14 @@ replicaCount: 1
 env:
   # Hostname for the UI ingress rule
   FLUXNOVA_UI_HOST: "demo.fluxnova.finos.org"
-  # URL of the FluxNova engine REST API consumed by the UI
-  FXN_REST_API_URL: "https://demo.fluxnova.finos.org/monitoring"
+  FXN_REST_API_URL: "http://fluxnova-engine:8080/engine-rest"
+  FXN_FORCE_HTTP: "true"
+  HOST: "0.0.0.0"
+  PORT: "4000"
+  FXN_OTEL_ENABLED: "false"
+
+ingress:
+  path: /()(.*)
 
 image:
   # Docker Hub image for the FluxNova Control Center UI
@@ -15,7 +21,7 @@ image:
 imagePullSecrets: []
 
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "fluxnova-ui"
 
 serviceAccount:
   create: true
@@ -30,8 +36,9 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  # UI container port
+  # Port exposed by the Kubernetes Service (and referenced in ingress-tls.yaml)
   port: 4000
+  containerPort: 4000
 
 resources: {}
 

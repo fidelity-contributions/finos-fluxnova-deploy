@@ -3,19 +3,8 @@ name: "Deploy to EKS"
 on:
   workflow_dispatch:
     inputs:
-      image_name:
-        description: >
-          Docker image to deploy.
-          "finos/fluxnova-springboot-demo" pulls from Docker Hub;
-          "ghcr.io/finos/fluxnova-bpm-platform" pulls from GitHub Container Registry.
-        required: true
-        default: "finos/fluxnova-springboot-demo"
-        type: choice
-        options:
-          - finos/fluxnova-springboot-demo
-          - ghcr.io/finos/fluxnova-bpm-platform
       image_tag:
-        description: "Image version / tag to deploy (e.g. 3.0.0)."
+        description: "Image tag to deploy (e.g. 3.0.0 or latest). Image name is taken from helm-charts-engine/fluxnova/values.yaml."
         required: true
         type: string
       dry_run:
@@ -35,19 +24,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Resolve image name and tag
-        id: resolve-image
-        shell: bash
-        run: |
-          set -euo pipefail
-          IMAGE_NAME="${{ inputs.image_name }}"
-          IMAGE_TAG="${{ inputs.image_tag }}"
-
-          echo "IMAGE_NAME=${IMAGE_NAME}" | tee -a "$GITHUB_ENV"
-          echo "IMAGE_TAG=${IMAGE_TAG}"   | tee -a "$GITHUB_ENV"
-          echo "image_name=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
-          echo "image_tag=${IMAGE_TAG}"   >> "$GITHUB_OUTPUT"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -84,10 +60,11 @@ jobs:
             echo "Dry-run mode enabled – no changes will be applied to the cluster."
           fi
 
-          echo "Deploying image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
-          echo "Helm release:    fluxnova"
-          echo "Namespace:       fluxnova-ns"
-          echo "Cluster:         fluxnova-sandbox-cluster (us-east-1)"
+          echo "Deploying tag:  ${{ inputs.image_tag }}"
+          echo "Image name:     taken from helm-charts-engine/fluxnova/values.yaml"
+          echo "Helm release:   fluxnova"
+          echo "Namespace:      fluxnova-ns"
+          echo "Cluster:        fluxnova-sandbox-cluster (us-east-1)"
 
           helm upgrade fluxnova \
             ./helm-charts-engine/fluxnova \
@@ -95,8 +72,7 @@ jobs:
             --install \
             --atomic \
             --timeout 5m \
-            --set "image.name=${{ env.IMAGE_NAME }}" \
-            --set "image.tag=${{ env.IMAGE_TAG }}" \
+            --set "image.tag=${{ inputs.image_tag }}" \
             $DRY_RUN_FLAG
 
       - name: Verify deployment rollout
@@ -106,13 +82,13 @@ jobs:
           set -euo pipefail
 
           echo "Waiting for deployment rollout to complete..."
-          kubectl rollout status deployment/fluxnova \
+          kubectl rollout status deployment/fluxnova-engine \
             --namespace fluxnova-ns \
             --timeout=5m
 
           echo ""
           echo "── Deployment summary ──────────────────────────────────────────"
-          kubectl get deployment fluxnova \
+          kubectl get deployment fluxnova-engine \
             --namespace fluxnova-ns \
             -o wide
 

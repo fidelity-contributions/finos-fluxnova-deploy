@@ -1,6 +1,7 @@
 replicaCount: 1
 env:
   FLUXNOVA_HOST: "fluxnova.example.com"
+  FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH: "/fluxnova-monitoring"
 
 # Database configuration.
 database:
@@ -21,7 +22,7 @@ imagePullSecrets:
   - name: ghcr-secret
 
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "fluxnova-engine"
 
 serviceAccount:
   create: true

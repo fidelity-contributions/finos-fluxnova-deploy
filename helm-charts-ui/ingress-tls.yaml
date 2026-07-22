@@ -1,30 +1,46 @@
-# ingress-tls.yaml – TLS-enabled Ingress for the FluxNova Control Center UI
-#
-# This Ingress routes traffic for demo.fluxnova.finos.org:
-#   /           -> fluxnova-ui service (port 4000)
-#
-# NOTE: The engine Ingress (helm-charts-engine/ingress-tls.yaml) should be updated
-# to restrict its path to /monitoring so both can coexist on the same domain.
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: fluxnova-ui-tls
+  name: fluxnova-combined-tls
   namespace: fluxnova-ns
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-cloudflare"
-    # Rewrite engine calls: the engine is served at /monitoring via its own Ingress.
-    # If you prefer a single combined Ingress, merge both path blocks here.
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
         - demo.fluxnova.finos.org
-      secretName: fluxnova-tls   # shared with engine – cert-manager will reuse the existing secret
+      secretName: fluxnova-tls
   rules:
     - host: demo.fluxnova.finos.org
       http:
         paths:
+          # ── Engine – BPM webapp UI ───────────────────────────────────────────
+          # FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH=/fluxnova-monitoring moves the
+          # Fluxnova webapp UI to this path. Path forwarded unchanged to the pod.
+          - path: /fluxnova-monitoring
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-engine
+                port:
+                  number: 8080
+
+          # ── Engine – REST API ────────────────────────────────────────────────
+          # The Spring/Fluxnova REST API is NOT affected by FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH.
+          # It stays at /engine-rest/... inside the pod regardless of the webapp path.
+          # Path forwarded unchanged to the pod.
+          - path: /engine-rest
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-engine
+                port:
+                  number: 8080
+
+          # ── Control Center UI – root catch-all ────────────────────────────────
+          # Matches everything not caught by the more-specific /fluxnova-monitoring prefix.
+          # nginx forwards the full path unchanged to the Next.js app.
           - path: /
             pathType: Prefix
             backend:
@@ -32,4 +48,3 @@ spec:
                 name: fluxnova-ui
                 port:
                   number: 4000
-
