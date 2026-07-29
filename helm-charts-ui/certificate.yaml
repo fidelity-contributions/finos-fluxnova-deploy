@@ -1,0 +1,18 @@
+# certificate.yaml
+# The TLS certificate for demo.fluxnova.finos.org is shared between the engine and the UI.
+# If you already applied helm-charts-engine/certificate.yaml, you do NOT need to apply this again.
+# It is kept here for reference and for standalone UI deployments.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fluxnova-tls
+  namespace: fluxnova-ns
+spec:
+  secretName: fluxnova-tls
+  issuerRef:
+    name: letsencrypt-cloudflare
+    kind: ClusterIssuer
+  commonName: demo.fluxnova.finos.org
+  dnsNames:
+    - demo.fluxnova.finos.org
+

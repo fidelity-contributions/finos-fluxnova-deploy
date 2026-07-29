@@ -1,0 +1,99 @@
+name: "Deploy to EKS"
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. 3.0.0 or latest). Image name is taken from helm-charts-engine/fluxnova/values.yaml."
+        required: true
+        type: string
+      dry_run:
+        description: "Perform a Helm dry-run (template render only, no changes applied)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Helm Upgrade on EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Update kubeconfig for EKS cluster
+        shell: bash
+        run: |
+          aws eks update-kubeconfig \
+            --name   fluxnova-sandbox-cluster \
+            --region us-east-1
+
+      - name: Verify cluster connectivity
+        shell: bash
+        run: |
+          kubectl get nodes
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "latest"
+
+      - name: Deploy with Helm
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DRY_RUN_FLAG=""
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            DRY_RUN_FLAG="--dry-run"
+            echo "Dry-run mode enabled – no changes will be applied to the cluster."
+          fi
+
+          echo "Deploying tag:  ${{ inputs.image_tag }}"
+          echo "Image name:     taken from helm-charts-engine/fluxnova/values.yaml"
+          echo "Helm release:   fluxnova"
+          echo "Namespace:      fluxnova-ns"
+          echo "Cluster:        fluxnova-sandbox-cluster (us-east-1)"
+
+          helm upgrade fluxnova \
+            ./helm-charts-engine/fluxnova \
+            --namespace fluxnova-ns \
+            --install \
+            --atomic \
+            --timeout 5m \
+            --set "image.tag=${{ inputs.image_tag }}" \
+            $DRY_RUN_FLAG
+
+      - name: Verify deployment rollout
+        if: ${{ inputs.dry_run != true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for deployment rollout to complete..."
+          kubectl rollout status deployment/fluxnova-engine \
+            --namespace fluxnova-ns \
+            --timeout=5m
+
+          echo ""
+          echo "── Deployment summary ──────────────────────────────────────────"
+          kubectl get deployment fluxnova-engine \
+            --namespace fluxnova-ns \
+            -o wide
+
+          echo ""
+          echo "── Pods ────────────────────────────────────────────────────────"
+          kubectl get pods \
+            --namespace fluxnova-ns \
+            -l "app.kubernetes.io/name=fluxnova"

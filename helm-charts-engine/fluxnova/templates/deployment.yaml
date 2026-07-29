@@ -4,6 +4,10 @@ metadata:
   name: {{ include "fluxnova.fullname" . }}
   labels:
     {{- include "fluxnova.labels" . | nindent 4 }}
+  {{- with .Values.podAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -33,6 +37,24 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          {{- /* Load DB env vars from one Secret (DB_URL, DB_USERNAME, DB_PASSWORD). */}}
+          {{- if and .Values.database.enabled .Values.database.envFromSecretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.database.envFromSecretName | quote }}
+          {{- end }}
+
+          env:
+            {{- range $name, $value := .Values.env }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+
+            {{- if and .Values.database.enabled .Values.database.driver }}
+            - name: DB_DRIVER
+              value: {{ .Values.database.driver | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

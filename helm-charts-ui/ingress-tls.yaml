@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fluxnova-combined-tls
+  namespace: fluxnova-ns
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-cloudflare"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - demo.fluxnova.finos.org
+      secretName: fluxnova-tls
+  rules:
+    - host: demo.fluxnova.finos.org
+      http:
+        paths:
+          # ── Engine – BPM webapp UI ───────────────────────────────────────────
+          # FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH=/fluxnova-monitoring moves the
+          # Fluxnova webapp UI to this path. Path forwarded unchanged to the pod.
+          - path: /fluxnova-monitoring
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-engine
+                port:
+                  number: 8080
+
+          # ── Engine – REST API ────────────────────────────────────────────────
+          # The Spring/Fluxnova REST API is NOT affected by FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH.
+          # It stays at /engine-rest/... inside the pod regardless of the webapp path.
+          # Path forwarded unchanged to the pod.
+          - path: /engine-rest
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-engine
+                port:
+                  number: 8080
+
+          # ── Control Center UI – root catch-all ────────────────────────────────
+          # Matches everything not caught by the more-specific /fluxnova-monitoring prefix.
+          # nginx forwards the full path unchanged to the Next.js app.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fluxnova-ui
+                port:
+                  number: 4000

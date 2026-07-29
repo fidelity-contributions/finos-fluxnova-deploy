@@ -1,0 +1,102 @@
+replicaCount: 1
+
+env:
+  # Hostname for the UI ingress rule
+  FLUXNOVA_UI_HOST: "demo.fluxnova.finos.org"
+  FXN_REST_API_URL: "http://fluxnova-engine:8080/engine-rest"
+  FXN_FORCE_HTTP: "true"
+  HOST: "0.0.0.0"
+  PORT: "4000"
+  FXN_OTEL_ENABLED: "false"
+
+ingress:
+  # Set to true to create the Ingress resource as part of helm install/upgrade.
+  # When enabled, the standalone ingress-tls.yaml no longer needs to be applied manually.
+  enabled: true
+
+  # Name of the Ingress resource
+  name: fluxnova-combined-tls
+
+  # Ingress class (e.g. nginx, alb, traefik)
+  className: nginx
+
+  # Hostname used for all routing rules and TLS
+  host: demo.fluxnova.finos.org
+
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-cloudflare"
+
+  tls:
+    enabled: true
+    secretName: fluxnova-tls
+
+  # Ordered list of path rules.
+  # More-specific paths must come before the catch-all "/".
+  paths:
+    # Engine – BPM webapp UI
+    # FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH=/fluxnova-monitoring moves the
+    # Fluxnova webapp UI to this path. Path forwarded unchanged to the pod.
+    - path: /fluxnova-monitoring
+      pathType: Prefix
+      serviceName: fluxnova-engine
+      servicePort: 8080
+
+    # Engine – REST API
+    # The Spring/Fluxnova REST API stays at /engine-rest/... regardless of
+    # the webapp path. Path forwarded unchanged to the pod.
+    - path: /engine-rest
+      pathType: Prefix
+      serviceName: fluxnova-engine
+      servicePort: 8080
+
+    # Control Center UI – root catch-all
+    # Matches everything not caught by the more-specific prefixes above.
+    # nginx forwards the full path unchanged to the Next.js app.
+    - path: /
+      pathType: Prefix
+      serviceName: fluxnova-ui
+      servicePort: 4000
+
+
+image:
+  # Docker Hub image for the FluxNova Control Center UI
+  name: finos/fluxnova-control-center
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: "fluxnova-ui"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  # Port exposed by the Kubernetes Service (and referenced in ingress-tls.yaml)
+  port: 4000
+  containerPort: 4000
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+

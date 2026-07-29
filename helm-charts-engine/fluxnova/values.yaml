@@ -1,17 +1,28 @@
 replicaCount: 1
 env:
   FLUXNOVA_HOST: "fluxnova.example.com"
-  HTTP_MODE: "http" # https or http
-  TLS_SECRET: ""
+  FLUXNOVA_BPM_WEBAPP_APPLICATION_PATH: "/fluxnova-monitoring"
+
+# Database configuration.
+database:
+  # Set to true to enable injection of DB_* env vars
+  enabled: true
+
+  # One Kubernetes Secret containing DB_URL, DB_USERNAME, DB_PASSWORD
+  # This Secret will be loaded into the container using envFrom.secretRef.
+  envFromSecretName: "fluxnova-db"
+  driver: "org.postgresql.Driver"
+
 image:
-  name: ghcr.io/finos/fluxnova-bpm-platform
-  tag: 0.0.1-SNAPSHOT
+  name: finos/fluxnova-springboot-demo
+  tag: latest
   pullPolicy: Always
 
 imagePullSecrets:
   - name: ghcr-secret
+
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "fluxnova-engine"
 
 serviceAccount:
   create: true

@@ -53,7 +53,7 @@ This repository includes Helm charts for deploying the application using Kuberne
 3. **Install the chart**:
 
    ```bash
-    cd helm-charts
+    cd helm-charts-engine
     helm install fluxnova --namespace fluxnova-ns --create-namespace ./fluxnova
    ```
 

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: fluxnova-ui
+description: A Helm chart for Fluxnova Control Center UI
+type: application
+version: 1.0.0
+appVersion: 1.0
+
